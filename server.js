@@ -1,0 +1,32 @@
+const express = require('express');
+const articleRouter = require('./routes/articles');
+const Article = require('./models/article');
+const mongoose = require('mongoose');
+const methodOverride = require('method-override');
+const app = express();
+
+mongoose.connect('mongodb://localhost:27017'),( {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride('_method'));
+
+app.get('/', async (req, res) => {
+  try {
+    const articles = await Article.find().sort({ createdAt: 'desc' });
+    res.render('articles/index', { articles: articles });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+app.use('/articles', articleRouter);
+
+const port = 8000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
